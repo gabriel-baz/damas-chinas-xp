@@ -7,7 +7,7 @@ public class VentanaJuego extends JFrame {
     public VentanaJuego() {
 
         setTitle("Damas Chinas");
-        setSize(200, 100);
+        setSize(550, 750);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -17,7 +17,6 @@ public class VentanaJuego extends JFrame {
     }
 
     private void iniciarPartida() {
-        setSize(550, 750);
         getContentPane().removeAll();
         add(new PanelTablero());
         revalidate();

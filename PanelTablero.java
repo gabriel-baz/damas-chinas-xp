@@ -95,6 +95,17 @@ public class PanelTablero extends JPanel {
                 }
             }
         }
+
+        // Mostrar turno actual
+        Color colorTurno = gestor.obtenerTurnoActual();
+        String nombreColor = colorTurno.equals(Color.RED) ? "ROJO" : "AZUL";
+        
+        g.setColor(colorTurno);
+        g.fillRect(10, getHeight() - 40, 30, 30);
+        
+        g.setColor(Color.BLACK);
+        g.drawRect(10, getHeight() - 40, 30, 30);
+        g.drawString("Turno: " + nombreColor, 50, getHeight() - 15);
     }
 
     private Casilla obtenerCasillaDesdePixel(int x, int y) {
