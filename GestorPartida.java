@@ -3,10 +3,12 @@ import java.awt.Color;
 public class GestorPartida {
 
     private Tablero tablero;
+    private Color turnoActual;
 
     public GestorPartida() {
 
         tablero = new Tablero();
+        turnoActual = Color.RED;
 
         colocarFichas();
     }
@@ -49,5 +51,43 @@ public class GestorPartida {
 
     public Tablero obtenerTablero() {
         return tablero;
+    }
+
+    public Color obtenerTurnoActual() {
+        return turnoActual;
+    }
+
+    public boolean intentarMover(Casilla origen, Casilla destino) {
+        if (origen == null || destino == null) {
+            return false;
+        }
+        if (!origen.esValida() || !destino.esValida()) {
+            return false;
+        }
+
+        Ficha ficha = origen.obtenerFicha();
+        if (ficha == null) {
+            return false;
+        }
+        if (!ficha.obtenerColor().equals(turnoActual)) {
+            return false;
+        }
+        if (destino.obtenerFicha() != null) {
+            return false;
+        }
+
+        int dr = destino.obtenerFila() - origen.obtenerFila();
+        int dc = destino.obtenerColumna() - origen.obtenerColumna();
+        boolean adyacente = (dr == 0 && Math.abs(dc) == 2)
+                || (Math.abs(dr) == 2 && Math.abs(dc) == 1);
+
+        if (!adyacente) {
+            return false;
+        }
+
+        destino.establecerFicha(ficha);
+        origen.establecerFicha(null);
+        turnoActual = turnoActual.equals(Color.RED) ? Color.BLUE : Color.RED;
+        return true;
     }
 }
