@@ -1,4 +1,5 @@
 import javax.swing.JPanel;
+import javax.swing.JButton;
 import java.awt.Graphics;
 import java.awt.Color;
 import java.awt.event.MouseAdapter;
@@ -9,26 +10,43 @@ public class PanelTableroConGanador extends JPanel {
     private GestorPartida gestor;
     private Casilla seleccionada;
     private VentanaJuego ventana;
+    private java.util.List<Casilla> posibles = new java.util.ArrayList<>();
 
     public PanelTableroConGanador(VentanaJuego ventana) {
         this.ventana = ventana;
         gestor = new GestorPartida();
+        setLayout(null);
+
+        JButton btnReiniciar = new JButton("Reiniciar");
+        btnReiniciar.setBounds(400, 10, 120, 30);
+        btnReiniciar.addActionListener(e -> ventana.reiniciarPartida());
+        add(btnReiniciar);
 
         addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mousePressed(MouseEvent e) {
                 manejarClick(e);
             }
         });
     }
 
     private void manejarClick(MouseEvent e) {
+        // Limpiar selección si ya no es válida (cambio de turno o ficha movida)
+        if (seleccionada != null && (seleccionada.obtenerFicha() == null || !seleccionada.obtenerFicha().obtenerColor().equals(gestor.obtenerTurnoActual()))) {
+            seleccionada = null;
+            posibles.clear();
+        }
+
         if (gestor.obtenerEnSaltoMultiple() != null) {
+            // Mostrar posibles saltos desde la ficha actual
+            posibles = gestor.obtenerSaltosDisponibles(gestor.obtenerEnSaltoMultiple());
+
             Casilla clic = obtenerCasillaDesdePixel(e.getX(), e.getY());
             if (clic != null && clic.esValida()) {
                 // Si hace clic en la ficha actual, termina voluntariamente el turno (deja de saltar)
                 if (clic == gestor.obtenerEnSaltoMultiple()) {
                     gestor.terminarSaltoMultiple();
+                    posibles.clear();
                     repaint();
                     return;
                 }
@@ -36,6 +54,7 @@ public class PanelTableroConGanador extends JPanel {
                 boolean movio = gestor.intentarMover(gestor.obtenerEnSaltoMultiple(), clic);
                 if (movio) {
                     verificarGanador();
+                    posibles = gestor.obtenerSaltosDisponibles(gestor.obtenerEnSaltoMultiple());
                 }
             }
             
@@ -44,6 +63,7 @@ public class PanelTableroConGanador extends JPanel {
                 java.util.List<Casilla> saltosDisponibles = gestor.obtenerSaltosDisponibles(gestor.obtenerEnSaltoMultiple());
                 if (saltosDisponibles.isEmpty()) {
                     gestor.limpiarSaltoMultiple();
+                    posibles.clear();
                 }
             }
             
@@ -54,6 +74,7 @@ public class PanelTableroConGanador extends JPanel {
         Casilla clic = obtenerCasillaDesdePixel(e.getX(), e.getY());
         if (clic == null || !clic.esValida()) {
             seleccionada = null;
+            posibles.clear();
             repaint();
             return;
         }
@@ -61,17 +82,29 @@ public class PanelTableroConGanador extends JPanel {
         if (seleccionada == null) {
             if (clic.obtenerFicha() != null && clic.obtenerFicha().obtenerColor().equals(gestor.obtenerTurnoActual())) {
                 seleccionada = clic;
+                posibles = gestor.obtenerMovimientosDisponibles(seleccionada);
             }
         } else if (clic == seleccionada) {
             seleccionada = null;
+            posibles.clear();
         } else {
             boolean movio = gestor.intentarMover(seleccionada, clic);
             if (!movio && clic.obtenerFicha() != null && clic.obtenerFicha().obtenerColor().equals(gestor.obtenerTurnoActual())) {
                 seleccionada = clic;
+                posibles = gestor.obtenerMovimientosDisponibles(seleccionada);
             } else if (movio) {
                 verificarGanador();
+                if (gestor.obtenerEnSaltoMultiple() != null) {
+                    seleccionada = gestor.obtenerEnSaltoMultiple();
+                    posibles = gestor.obtenerSaltosDisponibles(seleccionada);
+                } else {
+                    posibles.clear();
+                    seleccionada = null;
+                }
             }
-            seleccionada = null;
+            if (gestor.obtenerEnSaltoMultiple() == null) {
+                seleccionada = null;
+            }
         }
         repaint();
     }
@@ -108,9 +141,18 @@ public class PanelTableroConGanador extends JPanel {
                         g.drawOval(x + 4, y + 4, 24, 24);
                     }
 
+                    if (esPosible(casilla)) {
+                        g.setColor(new Color(0, 200, 0, 120));
+                        g.fillOval(x - 1, y - 1, 34, 34);
+                        g.setColor(Color.GREEN);
+                        g.drawOval(x - 2, y - 2, 36, 36);
+                        g.drawOval(x - 4, y - 4, 40, 40);
+                    }
+
                     if (casilla == seleccionada) {
                         g.setColor(Color.ORANGE);
-                        g.drawOval(x - 2, y - 2, 36, 36);
+                        g.drawOval(x - 3, y - 3, 38, 38);
+                        g.drawOval(x - 5, y - 5, 42, 42);
                     }
                 }
             }
@@ -133,15 +175,31 @@ public class PanelTableroConGanador extends JPanel {
         }
     }
 
+    private boolean esPosible(Casilla casilla) {
+        return posibles != null && posibles.contains(casilla);
+    }
+
     private Casilla obtenerCasillaDesdePixel(int x, int y) {
         int tamano = 20;
-        int columna = (x - 15) / tamano;
-        int fila = (y - 15) / tamano;
         Casilla[][] casillas = gestor.obtenerTablero().obtenerCasillas();
-        if (fila < 0 || columna < 0 || fila >= casillas.length || columna >= casillas[0].length) {
-            return null;
+
+        for (int fila = 0; fila < casillas.length; fila++) {
+            for (int columna = 0; columna < casillas[fila].length; columna++) {
+                Casilla casilla = casillas[fila][columna];
+                if (casilla != null && casilla.esValida()) {
+                    int ox = columna * tamano + 15;
+                    int oy = fila * tamano + 15;
+                    int cx = ox + 16;
+                    int cy = oy + 16;
+                    int dx = x - cx;
+                    int dy = y - cy;
+                    if (dx * dx + dy * dy <= 16 * 16) {
+                        return casilla;
+                    }
+                }
+            }
         }
-        return casillas[fila][columna];
+        return null;
     }
 }
 

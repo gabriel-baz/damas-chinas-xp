@@ -15,7 +15,7 @@ public class PanelTablero extends JPanel {
 
         addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mousePressed(MouseEvent e) {
                 // HU5: Si estamos en salto múltiple, solo permitir saltos desde esa casilla
                 if (gestor.obtenerEnSaltoMultiple() != null) {
                     Casilla clic = obtenerCasillaDesdePixel(e.getX(), e.getY());
@@ -132,13 +132,24 @@ public class PanelTablero extends JPanel {
 
     private Casilla obtenerCasillaDesdePixel(int x, int y) {
         int tamano = 20;
-        int columna = (x - 15) / tamano;
-        int fila = (y - 15) / tamano;
-
         Casilla[][] casillas = gestor.obtenerTablero().obtenerCasillas();
-        if (fila < 0 || columna < 0 || fila >= casillas.length || columna >= casillas[0].length) {
-            return null;
+
+        for (int fila = 0; fila < casillas.length; fila++) {
+            for (int columna = 0; columna < casillas[fila].length; columna++) {
+                Casilla casilla = casillas[fila][columna];
+                if (casilla != null && casilla.esValida()) {
+                    int ox = columna * tamano + 15;
+                    int oy = fila * tamano + 15;
+                    int cx = ox + 16;
+                    int cy = oy + 16;
+                    int dx = x - cx;
+                    int dy = y - cy;
+                    if (dx * dx + dy * dy <= 16 * 16) {
+                        return casilla;
+                    }
+                }
+            }
         }
-        return casillas[fila][columna];
+        return null;
     }
 }

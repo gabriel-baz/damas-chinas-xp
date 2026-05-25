@@ -25,16 +25,13 @@ public class VentanaJuego extends JFrame {
         repaint();
     }
 
-    public void mostrarGanador(Color colorGanador) {
-        getContentPane().removeAll();
-        add(new PanelGanador(colorGanador, e -> volverAlMenu()));
-        revalidate();
-        repaint();
+    public void reiniciarPartida() {
+        iniciarPartida();
     }
 
-    private void volverAlMenu() {
+    public void mostrarGanador(Color colorGanador) {
         getContentPane().removeAll();
-        add(new PanelMenu(e -> iniciarPartida()));
+        add(new PanelGanador(colorGanador, e -> iniciarPartida()));
         revalidate();
         repaint();
     }

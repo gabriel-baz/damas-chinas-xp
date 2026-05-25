@@ -237,4 +237,29 @@ public class GestorPartida {
     private void cambiarTurno() {
         turnoActual = turnoActual.equals(Color.RED) ? Color.BLUE : Color.RED;
     }
+
+    // HU10: Obtener movimientos legales (pasos y saltos)
+    public List<Casilla> obtenerMovimientosDisponibles(Casilla origen) {
+        List<Casilla> movimientos = new ArrayList<>();
+        if (origen == null || origen.obtenerFicha() == null) return movimientos;
+
+        Casilla[][] casillas = tablero.obtenerCasillas();
+        int fila = origen.obtenerFila();
+        int col = origen.obtenerColumna();
+
+        int[][] pasos = {{2, 1}, {2, -1}, {-2, 1}, {-2, -1}, {0, 2}, {0, -2}};
+        for (int[] paso : pasos) {
+            int nfila = fila + paso[0];
+            int ncol = col + paso[1];
+            if (nfila >= 0 && nfila < casillas.length && ncol >= 0 && ncol < casillas[0].length) {
+                Casilla destino = casillas[nfila][ncol];
+                if (destino.esValida() && destino.obtenerFicha() == null) {
+                    movimientos.add(destino);
+                }
+            }
+        }
+
+        movimientos.addAll(obtenerSaltosDisponibles(origen));
+        return movimientos;
+    }
 }

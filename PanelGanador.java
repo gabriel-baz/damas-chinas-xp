@@ -16,7 +16,7 @@ public class PanelGanador extends JPanel {
         
         setLayout(null);
         
-        btnReiniciar = new JButton("Reiniciar");
+        btnReiniciar = new JButton("Jugar de Nuevo");
         btnReiniciar.setBounds(150, 350, 100, 40);
         btnReiniciar.addActionListener(reiniciarListener);
         add(btnReiniciar);
@@ -45,4 +45,3 @@ public class PanelGanador extends JPanel {
         g.drawString("Jugador " + nombreColor, 130, 250);
     }
 }
-
