@@ -1,4 +1,5 @@
 import javax.swing.JFrame;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -18,7 +19,22 @@ public class VentanaJuego extends JFrame {
 
     private void iniciarPartida() {
         getContentPane().removeAll();
-        add(new PanelTablero());
+        PanelTableroConGanador panelConGanador = new PanelTableroConGanador(this);
+        add(panelConGanador);
+        revalidate();
+        repaint();
+    }
+
+    public void mostrarGanador(Color colorGanador) {
+        getContentPane().removeAll();
+        add(new PanelGanador(colorGanador, e -> volverAlMenu()));
+        revalidate();
+        repaint();
+    }
+
+    private void volverAlMenu() {
+        getContentPane().removeAll();
+        add(new PanelMenu(e -> iniciarPartida()));
         revalidate();
         repaint();
     }
